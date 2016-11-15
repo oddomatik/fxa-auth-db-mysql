@@ -7,7 +7,7 @@ var sinon = require('sinon')
 test(
   'bufferize module',
   function (t) {
-    t.plan(45)
+    t.plan(46)
 
     var bufferize = require('../../lib/bufferize')
     t.type(bufferize, 'object', 'bufferize exports object')
@@ -28,10 +28,11 @@ test(
     result = bufferize.bufferize({
       foo: '00',
       bar: 'ffff',
+      moo: undefined
     })
 
     t.type(result, 'object', 'bufferize.bufferize returned object')
-    t.equal(Object.keys(result).length, 2, 'bufferize.bufferize returned correct number of properties')
+    t.equal(Object.keys(result).length, 3, 'bufferize.bufferize returned correct number of properties')
     t.ok(Buffer.isBuffer(result.foo), 'bufferize.bufferize returned buffer for 00')
     t.equal(result.foo.length, 1, 'bufferize.bufferize returned correct length for 00')
     t.equal(result.foo[0], 0x00, 'bufferize.bufferize returned correct data for 00')
@@ -39,6 +40,7 @@ test(
     t.equal(result.bar.length, 2, 'bufferize.bufferize returned correct length for ffff')
     t.equal(result.bar[0], 0xff, 'bufferize.bufferize returned correct first byte for ffff')
     t.equal(result.bar[1], 0xff, 'bufferize.bufferize returned correct second byte for ffff')
+    t.equal(result.moo, undefined, 'bufferize.bufferize does not bufferize undefined values')
 
     result = bufferize.bufferize({
       foo: '00',

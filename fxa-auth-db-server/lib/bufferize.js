@@ -21,7 +21,10 @@ function bufferize(object, onlyTheseKeys) {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i]
     var value = object[key]
-    object[key] = new Buffer(value, 'hex')
+
+    if(value) {
+      object[key] = new Buffer(value, 'hex')
+    }
   }
   return object
 }
