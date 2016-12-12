@@ -1481,12 +1481,14 @@ module.exports = function(config, DB) {
               })
             }
 
-            function insert (uid, addr, name, session) {
+            function insert (uid, addr, name, session, location, userAgent) {
               return db.createSecurityEvent({
                 uid: uid,
                 ipAddr: addr,
                 name: name,
-                tokenId: session
+                tokenId: session,
+                location: location,
+                userAgent: userAgent
               })
             }
 
@@ -1502,11 +1504,15 @@ module.exports = function(config, DB) {
 
             var uid1 = ACCOUNT.uid
             var uid2 = newUuid()
+            var uid3 = newUuid()
             var addr1 = '127.0.0.1'
             var addr2 = '::127.0.0.2'
 
             var evA = 'account.login'
             var evB = 'account.create'
+
+            var testLocation = 'Kona, Hawaii, USA'
+            var testUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:53.0) Gecko/20100101 Firefox/53.0'
 
             var sessionId1 = hex32()
             var sessionId2 = hex32()
@@ -1562,7 +1568,8 @@ module.exports = function(config, DB) {
                     insert(uid1, addr1, evB, sessionId1),
                     insert(uid1, addr1, evA, sessionId2),
                     insert(uid1, addr2, evA, sessionId3),
-                    insert(uid2, addr1, evA, hex32())
+                    insert(uid2, addr1, evA, hex32()),
+                    insert(uid3, addr1, evA, hex32(), testLocation, testUserAgent)
                   ])
                 })
               },
@@ -1621,6 +1628,20 @@ module.exports = function(config, DB) {
                 newUuid(), addr1,
                 function (results) {
                   t.equal(results.length, 0, 'no events for unknown uid')
+                }
+              ),
+
+              testWithLocation: query(
+                uid3, addr1,
+                function (results) {
+                  t.equal(results[0].location, testLocation)
+                }
+              ),
+
+              testWithUserAgent: query(
+                uid3, addr1,
+                function (results) {
+                  t.equal(results[0].userAgent, testUserAgent)
                 }
               )
             })
