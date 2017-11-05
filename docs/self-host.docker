@@ -4,22 +4,38 @@ RUN adduser --disabled-password --gecos '' fxa && adduser fxa sudo && echo '%sud
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -yq \
-    mysql-server \
-  && apt-get clean
+    lsb-release \
+  && apt-get clean \
+  && export DEBIAN_FRONTEND=noninteractive \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/repo-codename select jessie' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/repo-distro select debian' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/repo-url string http://repo.mysql.com/apt/' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/select-preview select ' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/select-product select Ok' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/select-server select mysql-5.7' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/select-tools select ' \
+  && debconf-set-selections <<< 'mysql-apt-config mysql-apt-config/unsupported-platform select abort' \
+  && debconf-set-selections <<< 'mysql-server-5.7 mysql-server/root_password password test123' \
+  && debconf-set-selections <<< 'mysql-server-5.7 mysql-server/root_password_again password test123' \
+  && wget http://dev.mysql.com/get/mysql-apt-config_0.8.8-1_all.deb \
+  && dpkg -i mysql*.deb \
+  && apt-get update \
+  && apt-get install -y mysql-community-server \
+  && service mysql start \
+  && mysql -u root -ptest123 -e "set password = password('');" \
+  && mysql -u root mysql -e "update user set authentication_string=password(''), plugin='mysql_native_password' where user='root';" \
+  && service mysql restart
+
+USER fxa
 COPY . /home/fxa/fxa-auth-db-mysql
 WORKDIR /home/fxa/fxa-auth-db-mysql
-
-RUN chown -R fxa .
-USER fxa
 
 RUN npm install --production \
   && npm cache clear
 
-RUN echo '{"master": { "user": "root" }, "slave": { "user": "root" } }' > config/prod.json
-
-USER root
-
-CMD service mysql start && NODE_ENV=prod npm start
-
+RUN echo '{"master": { "user": "root" }, "slave": { "user": "root" } }' > config/prod.json \
+  && npm start
+  
+CMD /bin/bash
 # Expose ports
 EXPOSE 8000
