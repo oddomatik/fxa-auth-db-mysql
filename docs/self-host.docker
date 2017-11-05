@@ -9,6 +9,9 @@ RUN apt-get update \
 COPY . /home/fxa/fxa-auth-db-mysql
 WORKDIR /home/fxa/fxa-auth-db-mysql
 
+RUN chown -R fxa .
+USER fxa
+
 RUN npm install --production \
   && npm cache clear
 
