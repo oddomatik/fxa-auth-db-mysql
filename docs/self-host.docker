@@ -1,5 +1,7 @@
 FROM oddomatik/fxa-slim-image:latest
 
+RUN adduser --disabled-password --gecos '' fxa && adduser fxa sudo && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -yq \
     mysql-server \
