@@ -12,7 +12,7 @@ RUN npm install --production \
 
 RUN echo '{"master": { "user": "root" }, "slave": { "user": "root" } }' > config/prod.json
 
-CMD service mysql start && NODE_ENV=prod npm start
+CMD service mysql start; NODE_ENV=prod npm start; service mysql start; service mysql start
 
 # Expose ports
 EXPOSE 8000
